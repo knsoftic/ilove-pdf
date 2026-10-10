@@ -126,7 +126,7 @@ No database is needed for processing. SQLite (or MySQL) only stores settings, th
 ### 4.1 Get the code and dependencies
 
 ```bash
-git clone <your-repository> pdf-toolkit
+git clone https://github.com/knsoftic/ilove-pdf.git pdf-toolkit
 cd pdf-toolkit
 composer install
 npm install
@@ -397,6 +397,8 @@ Translated PDFs are generated with mPDF, which ships fonts for Latin, Cyrillic, 
 After going live: set `APP_URL` to your `https://` domain, verify the site in Google Search Console and Bing Webmaster Tools and submit `https://your-domain/sitemap.xml`.
 
 ## 12. Production deployment
+
+> **aaPanel:** step-by-step guide (Roman Urdu) with the exact aaPanel menu paths, PHP/Nginx settings, cron, Supervisor and SSL: [docs/DEPLOY-AAPANEL.md](docs/DEPLOY-AAPANEL.md). Updates on the server: `bash scripts/deploy.sh`.
 
 ```bash
 composer install --no-dev --optimize-autoloader
