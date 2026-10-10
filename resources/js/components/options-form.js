@@ -123,8 +123,14 @@ export class OptionsForm {
         if (!this.form) return null;
         const values = this.values();
 
+        // Same rules as the server: "required", or "required_if" another option has a given value.
+        const requiredNow = (field) =>
+            field.required ||
+            (field.requiredIf &&
+                Object.entries(field.requiredIf).every(([other, allowed]) => (Array.isArray(allowed) ? allowed : [allowed]).map(String).includes(String(values[other]))));
+
         for (const [key, field] of Object.entries(this.config.options || {})) {
-            if (!field.required || !this.isVisible(key)) continue;
+            if (!requiredNow(field) || !this.isVisible(key)) continue;
             const value = values[key];
             if (value === null || value === undefined || String(value).trim() === '') {
                 return `Please fill in "${field.label}".`;

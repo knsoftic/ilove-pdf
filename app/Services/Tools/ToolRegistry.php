@@ -259,6 +259,7 @@ class ToolRegistry
                 'type' => $field['type'],
                 'default' => $field['default'],
                 'required' => (bool) ($field['required'] ?? false),
+                'requiredIf' => $field['required_if'] ?? null,
                 'label' => $field['label'],
             ])->all(),
             'endpoints' => [

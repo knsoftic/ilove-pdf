@@ -875,7 +875,7 @@ return [
                 'mode' => [
                     'type' => 'choice',
                     'label' => 'Split mode',
-                    'default' => 'ranges',
+                    'default' => 'every',
                     'cards' => true,
                     'choices' => [
                         'every' => ['Every page', 'One PDF per page'],

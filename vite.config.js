@@ -60,6 +60,15 @@ export default defineConfig({
         // PDF.js and Fabric are large but loaded on demand only.
         chunkSizeWarningLimit: 1600,
         target: 'es2022',
+        rollupOptions: {
+            output: {
+                // Emit the PDF.js worker (.mjs) as .js: many servers (e.g. Nginx's
+                // default mime.types) send .mjs as application/octet-stream, which
+                // browsers refuse to run as a module.
+                assetFileNames: (asset) =>
+                    (asset.names?.[0] ?? asset.name ?? '').endsWith('.mjs') ? 'assets/[name]-[hash].js' : 'assets/[name]-[hash][extname]',
+            },
+        },
     },
     worker: {
         format: 'es',

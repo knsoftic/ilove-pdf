@@ -14,6 +14,8 @@ use App\Services\System\CommandRunner;
  */
 class QpdfEngine
 {
+    // 3 = finished with warnings (output written). Checked here instead of
+    // using --warning-exit-0, which older qpdf versions do not know.
     private const OK = [0, 3];
 
     public function __construct(
@@ -56,7 +58,7 @@ class QpdfEngine
      */
     public function assemble(array $parts, string $output, array $rotations = []): void
     {
-        $args = [$this->bin(), '--empty', '--warning-exit-0', '--pages'];
+        $args = [$this->bin(), '--empty', '--pages'];
 
         foreach ($parts as [$pdf, $pages]) {
             $args[] = $pdf;
@@ -106,7 +108,7 @@ class QpdfEngine
     public function optimize(string $input, string $output, bool $linearize = false, bool $removeMetadata = false): void
     {
         $args = [
-            $this->bin(), '--warning-exit-0',
+            $this->bin(),
             '--object-streams=generate', '--compress-streams=y', '--recompress-flate',
             '--compression-level=9', '--remove-unreferenced-resources=yes',
         ];
@@ -125,7 +127,7 @@ class QpdfEngine
 
     public function flatten(string $input, string $output, bool $forms = true, bool $annotations = true): void
     {
-        $args = [$this->bin(), '--warning-exit-0'];
+        $args = [$this->bin()];
 
         if ($forms) {
             $args[] = '--generate-appearances';
@@ -149,7 +151,7 @@ class QpdfEngine
         @chmod($argFile, 0600);
 
         try {
-            $this->runner->mustRun([$this->bin(), '--warning-exit-0', '@'.$argFile, $input, $output], $errorCode, null, null, [], self::OK);
+            $this->runner->mustRun([$this->bin(), '@'.$argFile, $input, $output], $errorCode, null, null, [], self::OK);
         } finally {
             @unlink($argFile);
         }

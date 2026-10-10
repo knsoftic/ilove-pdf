@@ -41,9 +41,12 @@ class GhostscriptEngine
             default => ['/ebook', 120, 0.6],
         };
 
+        // The output file must be set before "-c": Ghostscript processes the
+        // arguments in order and opens the device when the PostScript runs.
         $this->runner->mustRun([
             ...$this->base(),
             '-sDEVICE=pdfwrite',
+            '-sOutputFile='.$output,
             '-dCompatibilityLevel=1.5',
             "-dPDFSETTINGS={$preset}",
             '-dDetectDuplicateImages=true',
@@ -59,7 +62,6 @@ class GhostscriptEngine
             '-dGrayImageDownsampleThreshold=1.2',
             '-c', "<< /ColorACSImageDict << /QFactor {$quality} /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2] >> /GrayACSImageDict << /QFactor {$quality} /Blend 1 /HSamples [2 1 1 2] /VSamples [2 1 1 2] >> >> setdistillerparams",
             '-f',
-            '-sOutputFile='.$output,
             $input,
         ], 'conversion_failed');
     }
