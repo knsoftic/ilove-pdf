@@ -1,0 +1,331 @@
+@import 'tailwindcss';
+
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../../app/Http/Controllers/**/*.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-signature-1: 'Dancing Script', cursive;
+    --font-signature-2: 'Great Vibes', cursive;
+    --font-signature-3: 'Caveat', cursive;
+
+    --color-brand-50: #eef2ff;
+    --color-brand-100: #e0e7ff;
+    --color-brand-200: #c7d2fe;
+    --color-brand-300: #a5b4fc;
+    --color-brand-400: #818cf8;
+    --color-brand-500: #6366f1;
+    --color-brand-600: #4f46e5;
+    --color-brand-700: #4338ca;
+    --color-brand-800: #3730a3;
+    --color-brand-900: #312e81;
+
+    --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+    --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.05), 0 12px 32px -8px rgb(15 23 42 / 0.18);
+}
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-feature-settings: 'cv11', 'ss01';
+    }
+
+    [x-cloak],
+    [hidden] {
+        display: none !important;
+    }
+
+    ::selection {
+        background: var(--color-brand-200);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+    }
+}
+
+@utility container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@layer components {
+    /* Buttons */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+            select-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2;
+    }
+    .btn-lg {
+        @apply px-6 py-3.5 text-base;
+    }
+    .btn-sm {
+        @apply rounded-lg px-3 py-1.5 text-xs;
+    }
+    .btn-primary {
+        @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800;
+    }
+    .btn-secondary {
+        @apply border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300
+            dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+    }
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
+    }
+    .btn-danger {
+        @apply bg-rose-600 text-white hover:bg-rose-700;
+    }
+    .btn-icon {
+        @apply inline-flex size-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100
+            hover:text-slate-900 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
+    }
+
+    /* Surfaces */
+    .card {
+        @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900;
+    }
+
+    /* Forms */
+    .label {
+        @apply mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300;
+    }
+    .input {
+        @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm
+            placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none
+            dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100;
+    }
+    .help {
+        @apply mt-1.5 text-xs text-slate-500 dark:text-slate-400;
+    }
+    .toggle {
+        @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition
+            checked:bg-brand-600 dark:bg-slate-700 dark:checked:bg-brand-500;
+    }
+    .toggle::after {
+        content: '';
+        @apply absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition;
+    }
+    .toggle:checked::after {
+        transform: translateX(1.25rem);
+    }
+
+    .choice {
+        @apply flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm transition
+            hover:border-brand-300 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:checked]:ring-2
+            has-[:checked]:ring-brand-500/20 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50
+            dark:border-slate-700 dark:bg-slate-900 dark:has-[:checked]:bg-brand-500/10;
+    }
+    .segmented {
+        @apply inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800;
+    }
+    .segmented label {
+        @apply cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition
+            has-[:checked]:bg-white has-[:checked]:text-slate-900 has-[:checked]:shadow-sm
+            dark:text-slate-300 dark:has-[:checked]:bg-slate-700 dark:has-[:checked]:text-white;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+    }
+
+    /* Tool icon tile, coloured by category */
+    .tool-icon {
+        @apply inline-flex shrink-0 items-center justify-center rounded-xl;
+        color: var(--tool-color, var(--color-brand-600));
+        background: color-mix(in srgb, var(--tool-color, var(--color-brand-600)) 12%, transparent);
+    }
+
+    /* Upload area */
+    .dropzone {
+        @apply relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300
+            bg-white/70 px-6 py-12 text-center transition dark:border-slate-700 dark:bg-slate-900/60;
+    }
+    .dropzone.is-dragging {
+        @apply border-brand-500 bg-brand-50 ring-8 ring-brand-500/10 dark:bg-brand-500/10;
+    }
+
+    .progress-track {
+        @apply h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800;
+    }
+    .progress-bar {
+        @apply h-full rounded-full bg-linear-to-r from-brand-500 to-violet-500 transition-[width] duration-300;
+    }
+    .progress-bar.indeterminate {
+        width: 35% !important;
+        animation: indeterminate 1.2s ease-in-out infinite;
+    }
+
+    .prose-page {
+        @apply max-w-none text-slate-700 dark:text-slate-300;
+    }
+    .prose-page h1 {
+        @apply mb-4 text-3xl font-bold text-slate-900 dark:text-white;
+    }
+    .prose-page h2 {
+        @apply mt-8 mb-3 text-xl font-semibold text-slate-900 dark:text-white;
+    }
+    .prose-page h3 {
+        @apply mt-6 mb-2 text-lg font-semibold text-slate-900 dark:text-white;
+    }
+    .prose-page p,
+    .prose-page ul,
+    .prose-page ol {
+        @apply mb-4 leading-7;
+    }
+    .prose-page ul {
+        @apply list-disc pl-6;
+    }
+    .prose-page ol {
+        @apply list-decimal pl-6;
+    }
+    .prose-page a {
+        @apply text-brand-600 underline underline-offset-2 dark:text-brand-400;
+    }
+
+    .prose-page > :first-child {
+        @apply mt-0;
+    }
+    .prose-page strong {
+        @apply font-semibold text-slate-900 dark:text-white;
+    }
+    .prose-page blockquote {
+        @apply mb-4 border-l-4 border-brand-200 pl-4 italic dark:border-brand-500/40;
+    }
+
+    .ad-slot {
+        @apply container-page my-4 flex flex-col items-center gap-1.5;
+    }
+    .ad-label {
+        @apply text-[10px] font-medium tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500;
+    }
+    .ad-unit {
+        @apply flex w-full max-w-full justify-center overflow-hidden;
+    }
+    .ad-link {
+        @apply inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700
+            shadow-sm transition hover:border-brand-300 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
+    }
+    .ad-placeholder {
+        @apply flex min-h-24 w-full max-w-3xl flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-400
+            bg-amber-50/80 p-3 text-center text-xs text-amber-800 dark:border-amber-500/60 dark:bg-amber-500/10 dark:text-amber-200;
+    }
+    .ad-placeholder span {
+        @apply text-[10px] font-semibold tracking-widest uppercase opacity-70;
+    }
+    .ad-placeholder code {
+        @apply rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[11px] dark:bg-amber-500/20;
+    }
+
+    .kbd {
+        @apply rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600
+            dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300;
+    }
+
+    /* Page thumbnails (page picker, organizer) */
+    .page-thumb {
+        @apply relative flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-white p-2 shadow-soft
+            transition dark:bg-slate-900;
+    }
+    .page-thumb canvas,
+    .page-thumb img {
+        @apply max-h-full max-w-full rounded-md border border-slate-200 bg-white shadow-sm dark:border-slate-700;
+    }
+    .page-thumb.is-selected {
+        @apply border-brand-500 ring-4 ring-brand-500/15;
+    }
+    .sortable-ghost {
+        @apply opacity-30;
+    }
+    .sortable-drag {
+        @apply shadow-lift;
+    }
+}
+
+@keyframes indeterminate {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(300%);
+    }
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.animate-fade-up {
+    animation: fade-up 0.35s ease-out both;
+}
+
+/* ---------------------------------------------------------------------------
+ | PDF editor
+ * ------------------------------------------------------------------------- */
+
+.editor-shell {
+    height: calc(100dvh - 4rem);
+}
+
+/* While a document is open the workspace takes the whole window. */
+body.editor-open {
+    overflow: hidden;
+}
+body.editor-open > footer,
+body.editor-open .ad-slot,
+body.editor-open #editor-upload {
+    display: none !important;
+}
+body.editor-open #editor {
+    display: flex !important;
+}
+
+.editor-page {
+    position: relative;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow:
+        0 1px 3px rgb(0 0 0 / 0.12),
+        0 8px 24px -8px rgb(0 0 0 / 0.18);
+}
+
+.editor-page > canvas.pdf-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.editor-page .canvas-container {
+    position: absolute !important;
+    inset: 0;
+}
+
+.editor-page .text-hit {
+    position: absolute;
+    border-radius: 2px;
+    outline: 1px dashed rgb(79 70 229 / 0.55);
+    background: rgb(99 102 241 / 0.08);
+    pointer-events: none;
+}
+
+.editor-tool[aria-pressed='true'] {
+    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-600 hover:text-white dark:bg-brand-500;
+}
+
+.signature-pad {
+    touch-action: none;
+}
