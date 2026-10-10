@@ -225,10 +225,11 @@ return [
                     ],
                     'requires' => ['layout' => 'libreoffice'],
                 ],
+                'ocr_language' => ['type' => 'ocr-language', 'label' => 'Language of scanned pages', 'default' => 'eng', 'help' => 'Only used when the PDF has no text layer: the pages are then read with text recognition (OCR).'],
             ],
             'faq' => [
                 ['Will the Word document be editable?', 'Yes. The text of your PDF is rebuilt as real paragraphs and headings that you can edit in Microsoft Word, LibreOffice or Google Docs.'],
-                ['Can scanned PDFs be converted to Word?', 'Scanned PDFs only contain images. Run them through the OCR PDF tool first to recognise the text, then convert the result to Word.'],
+                ['Can scanned PDFs be converted to Word?', 'Yes. When a PDF contains only images, the text is recognised automatically with OCR (up to 20 pages). Choose the language of the document for the best result.'],
             ],
         ],
 
@@ -252,6 +253,7 @@ return [
                     'choices' => ['per_page' => 'One sheet per page', 'single' => 'Everything in one sheet'],
                 ],
                 'numbers' => ['type' => 'toggle', 'label' => 'Convert numbers to numeric cells', 'default' => true],
+                'ocr_language' => ['type' => 'ocr-language', 'label' => 'Language of scanned pages', 'default' => 'eng', 'help' => 'Only used when the PDF has no text layer: the pages are then read with text recognition (OCR).'],
             ],
         ],
 
@@ -388,6 +390,7 @@ return [
                     'choices' => ['comma' => 'Comma (,)', 'semicolon' => 'Semicolon (;)', 'tab' => 'Tab'],
                 ],
                 'numbers' => ['type' => 'toggle', 'label' => 'Normalise numbers (1,234.50 → 1234.50)', 'default' => false],
+                'ocr_language' => ['type' => 'ocr-language', 'label' => 'Language of scanned pages', 'default' => 'eng', 'help' => 'Only used when the PDF has no text layer: the pages are then read with text recognition (OCR).'],
             ],
         ],
 

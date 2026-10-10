@@ -435,6 +435,11 @@ class LayoutAnalyzer
 
     private function estimateWidth(array $item): float
     {
+        // OCR provides the real word width; PDF text runs only a font size.
+        if (isset($item['width'])) {
+            return (float) $item['width'];
+        }
+
         return mb_strlen($item['text']) * $item['size'] * ($item['bold'] ? 0.55 : 0.5);
     }
 

@@ -9,9 +9,11 @@ use App\Services\Pdf\JobContext;
 use App\Services\Pdf\LayoutAnalyzer;
 use App\Services\Pdf\PdfTextExtractor;
 use App\Services\Pdf\ProcessResult;
+use App\Services\Pdf\ScannedPdfReader;
 
 /**
- * PDF -> XLSX / CSV. Detects columns from the text layout of each page.
+ * PDF -> XLSX / CSV. Detects columns from the text layout of each page;
+ * scanned pages are read with OCR when Tesseract is installed.
  */
 class PdfToSpreadsheetProcessor extends AbstractProcessor
 {
@@ -20,6 +22,7 @@ class PdfToSpreadsheetProcessor extends AbstractProcessor
         private readonly LayoutAnalyzer $layout,
         private readonly SpreadsheetBuilder $spreadsheet,
         private readonly PopplerEngine $poppler,
+        private readonly ScannedPdfReader $scanned,
     ) {}
 
     public function handle(JobContext $context): ProcessResult
@@ -31,8 +34,18 @@ class PdfToSpreadsheetProcessor extends AbstractProcessor
         $context->progress(10, 'Detecting tables…');
         $pages = $this->rowsPerPage($file->path, $context);
 
-        if (collect($pages)->flatten()->filter(fn ($v) => trim((string) $v) !== '')->isEmpty()) {
-            throw ToolException::make('nothing_found', 'No text or tables were found in this PDF. Scanned documents need OCR first.');
+        // No text layer at all: a scanned document – recognise it with OCR.
+        if ($this->filledCells($pages) === 0 && $this->scanned->available()) {
+            $pages = array_map(
+                fn (array $page) => $this->layout->rows($this->layout->lines($page['items'])),
+                $this->scanned->positioned($file->path, $pageCount, $context, $context->option('ocr_language'))
+            );
+        }
+
+        if ($this->filledCells($pages) === 0) {
+            throw ToolException::make('nothing_found', $this->scanned->available()
+                ? 'No text or tables were found in this PDF, not even with text recognition (OCR).'
+                : 'No text or tables were found in this PDF. Scanned documents need OCR first.');
         }
 
         $context->progress(75, 'Writing spreadsheet…');
@@ -115,8 +128,9 @@ class PdfToSpreadsheetProcessor extends AbstractProcessor
             throw ToolException::make('corrupted_pdf');
         }
 
-        // Use whichever method recognised more table rows.
-        usort($candidates, fn ($a, $b) => $this->score($b) <=> $this->score($a));
+        // Use whichever method recognised more table rows; on a tie the one
+        // that found more text (an empty result must never win).
+        usort($candidates, fn ($a, $b) => [$this->score($b), $this->filledCells($b)] <=> [$this->score($a), $this->filledCells($a)]);
 
         return $candidates[0];
     }
@@ -124,5 +138,25 @@ class PdfToSpreadsheetProcessor extends AbstractProcessor
     private function score(array $pages): int
     {
         return array_sum(array_map(fn ($rows) => $this->layout->tableScore($rows), $pages));
+    }
+
+    /**
+     * @param  list<list<list<string>>>  $pages
+     */
+    private function filledCells(array $pages): int
+    {
+        $count = 0;
+
+        foreach ($pages as $rows) {
+            foreach ($rows as $row) {
+                foreach ($row as $cell) {
+                    if (trim((string) $cell) !== '') {
+                        $count++;
+                    }
+                }
+            }
+        }
+
+        return $count;
     }
 }

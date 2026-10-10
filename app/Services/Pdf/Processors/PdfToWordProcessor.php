@@ -9,6 +9,7 @@ use App\Services\Pdf\JobContext;
 use App\Services\Pdf\LayoutAnalyzer;
 use App\Services\Pdf\PdfTextExtractor;
 use App\Services\Pdf\ProcessResult;
+use App\Services\Pdf\ScannedPdfReader;
 use Throwable;
 
 /**
@@ -25,6 +26,7 @@ class PdfToWordProcessor extends AbstractProcessor
         private readonly LayoutAnalyzer $layout,
         private readonly DocxBuilder $docx,
         private readonly LibreOfficeEngine $libreOffice,
+        private readonly ScannedPdfReader $scanned,
     ) {}
 
     public function handle(JobContext $context): ProcessResult
@@ -66,8 +68,20 @@ class PdfToWordProcessor extends AbstractProcessor
             ), fn ($block) => $block['text'] !== '')), $this->extractor->pages($file->path, $context->workDir()));
         }
 
+        // No text layer at all: a scanned document – recognise it with OCR.
+        if ($this->isEmpty($pages) && $this->scanned->available()) {
+            $pages = [];
+
+            foreach ($this->scanned->positioned($file->path, $pageCount, $context, $context->option('ocr_language')) as $page) {
+                $pageSize ??= ['width' => $page['width'], 'height' => $page['height']];
+                $pages[] = $this->layout->blocks($this->layout->lines($page['items']));
+            }
+        }
+
         if ($this->isEmpty($pages)) {
-            throw ToolException::make('nothing_found', 'No text was found in this PDF. It may be a scanned document – run it through "OCR PDF" first.');
+            throw ToolException::make('nothing_found', $this->scanned->available()
+                ? 'No text was found in this PDF, not even with text recognition (OCR).'
+                : 'No text was found in this PDF. It may be a scanned document – run it through "OCR PDF" first.');
         }
 
         $context->progress(80, 'Writing Word document…');

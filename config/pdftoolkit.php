@@ -126,6 +126,8 @@ return [
     */
     'ocr' => [
         'dpi' => 300,
+        // PDF to Word/Excel/CSV read scanned PDFs with OCR up to this many pages.
+        'max_auto_pages' => (int) env('OCR_MAX_AUTO_PAGES', 20),
         // Browser OCR (tesseract.js) language data. Point this at your own
         // server (e.g. /tessdata) to avoid using the public CDN.
         'browser_lang_path' => env('OCR_BROWSER_LANG_PATH', 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/{lang}/4.0.0_best_int'),

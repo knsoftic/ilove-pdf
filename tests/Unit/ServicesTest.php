@@ -4,8 +4,10 @@ namespace Tests\Unit;
 
 use App\Services\Documents\HtmlSanitizer;
 use App\Services\Documents\SpreadsheetBuilder;
+use App\Services\Ocr\TesseractEngine;
 use App\Services\Pdf\ImagePdfWriter;
 use App\Services\Pdf\LayoutAnalyzer;
+use App\Services\Pdf\ScannedPdfReader;
 use Tests\TestCase;
 
 class ServicesTest extends TestCase
@@ -88,5 +90,40 @@ class ServicesTest extends TestCase
         $this->assertStringContainsString('/DCTDecode', $pdf);
         $this->assertStringContainsString('/SMask', $pdf);
         $this->assertSame(2, preg_match_all('#/Type /Page(?!s)#', $pdf));
+    }
+
+    public function test_tesseract_tsv_is_parsed_into_words(): void
+    {
+        $tsv = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+            ."1\t1\t0\t0\t0\t0\t0\t0\t2480\t3508\t-1\t\n"
+            ."4\t1\t1\t1\t1\t0\t300\t400\t900\t60\t-1\t\n"
+            ."5\t1\t1\t1\t1\t1\t300\t400\t200\t60\t96.5\tName\n"
+            ."5\t1\t1\t1\t1\t2\t1300\t402\t260\t58\t91.0\tAmount\n"
+            ."5\t1\t1\t1\t1\t3\t1700\t402\t10\t58\t95.0\t \n";
+
+        $words = TesseractEngine::parseTsv($tsv);
+
+        $this->assertCount(2, $words);
+        $this->assertSame(['line' => '1-1-1-1', 'left' => 300, 'top' => 400, 'width' => 200, 'height' => 60, 'conf' => 96.5, 'text' => 'Name'], $words[0]);
+        $this->assertSame('Amount', $words[1]['text']);
+    }
+
+    public function test_ocr_words_are_rebuilt_into_table_rows(): void
+    {
+        // A 300 dpi scan of 12 pt text (≈ 50 px): two columns, a header and two
+        // data rows. Words are ~14 px (0.28 em) apart, columns several em.
+        $word = fn (string $line, int $left, int $top, int $width, string $text) => compact('line', 'left', 'top', 'width', 'text') + ['height' => 50, 'conf' => 90.0];
+        $words = [
+            $word('a', 300, 400, 180, 'Product'), $word('a', 494, 400, 110, 'name'), $word('b', 1500, 402, 160, 'Amount'),
+            $word('c', 300, 500, 130, 'Alpha'), $word('c', 444, 500, 70, 'tea'), $word('d', 1500, 503, 48, '10'),
+            $word('e', 300, 600, 100, 'Beta'), $word('f', 1500, 598, 48, '20'),
+        ];
+
+        $page = ScannedPdfReader::pageFromWords($words, 2480, 3508, 300);
+        $layout = new LayoutAnalyzer;
+        $rows = $layout->rows($layout->lines($page['items']));
+
+        $this->assertEqualsWithDelta(595.2, $page['width'], 0.1);
+        $this->assertSame([['Product name', 'Amount'], ['Alpha tea', '10'], ['Beta', '20']], $rows);
     }
 }

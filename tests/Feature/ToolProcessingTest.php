@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Services\Pdf\ImagePdfWriter;
+use App\Services\Pdf\JobContext;
+use App\Services\Pdf\ScannedPdfReader;
 use App\Services\Settings\SettingsRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -132,6 +135,54 @@ class ToolProcessingTest extends TestCase
 
         $this->assertStringContainsString('Alpha,10', $csv);
         $this->assertStringContainsString('Beta,20', $csv);
+    }
+
+    public function test_scanned_pdfs_are_read_with_ocr_for_spreadsheets(): void
+    {
+        $image = imagecreatetruecolor(400, 300);
+        imagejpeg($image, $jpg = $this->fixtures.'/scan.jpg');
+        $writer = new ImagePdfWriter($scan = $this->fixtures.'/scan.pdf');
+        $writer->addImagePage($jpg, null);
+        $writer->close();
+
+        // Without OCR the user is told what to do.
+        $this->app->instance(ScannedPdfReader::class, $this->fakeScanner(false));
+        $this->process('pdf-to-csv', [$this->upload($scan, 'scan.pdf')])
+            ->assertJsonPath('status', 'failed')
+            ->assertJsonPath('error.code', 'nothing_found')
+            ->assertJsonPath('error.message', 'No text or tables were found in this PDF. Scanned documents need OCR first.');
+
+        // With OCR the recognised words become table rows.
+        $this->app->instance(ScannedPdfReader::class, $this->fakeScanner(true));
+        $response = $this->process('pdf-to-csv', [$this->upload($scan, 'scan.pdf')], ['ocr_language' => 'eng']);
+        $response->assertOk()->assertJsonPath('status', 'done');
+
+        $csv = file_get_contents($this->withSession(['pdftk_owner' => 'owner-token'])->get($response->json('result.download_url'))->baseResponse->getFile()->getPathname());
+        $this->assertStringContainsString('Invoice,Total', $csv);
+        $this->assertStringContainsString('A-100,250', $csv);
+    }
+
+    private function fakeScanner(bool $available): ScannedPdfReader
+    {
+        return new class($available) extends ScannedPdfReader
+        {
+            public function __construct(private readonly bool $ready) {}
+
+            public function available(): bool
+            {
+                return $this->ready;
+            }
+
+            public function positioned(string $pdf, int $pageCount, JobContext $context, ?string $language, int $fromPercent = 10, int $toPercent = 70): array
+            {
+                $word = fn (string $line, int $left, int $top, int $width, string $text) => compact('line', 'left', 'top', 'width', 'text') + ['height' => 50, 'conf' => 90.0];
+
+                return [self::pageFromWords([
+                    $word('1', 300, 400, 160, 'Invoice'), $word('2', 1200, 400, 110, 'Total'),
+                    $word('3', 300, 500, 150, 'A-100'), $word('4', 1200, 500, 75, '250'),
+                ], 2480, 3508, 300)];
+            }
+        };
     }
 
     public function test_text_to_pdf_works_without_a_file_in_paste_mode(): void

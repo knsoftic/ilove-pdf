@@ -21,6 +21,14 @@ interface OcrEngine
     public function text(string $image, string $language): string;
 
     /**
+     * Recognised words with their boxes in image pixels; words of one text
+     * line share the same "line" key.
+     *
+     * @return list<array{line: string, left: int, top: int, width: int, height: int, conf: float, text: string}>
+     */
+    public function words(string $image, string $language): array;
+
+    /**
      * Creates a one-page searchable PDF (image + invisible text layer) and
      * returns its path.
      */
