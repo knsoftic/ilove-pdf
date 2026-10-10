@@ -85,6 +85,12 @@ Baqi zaroori extensions (`gd`, `zip`, `mbstring`, `xml`, `dom`, `curl`, `openssl
 
 `gd_info()` mein `JPEG Support`, `PNG Support` aur `WebP Support` teeno `1` hone chahiye.
 
+> **Do alag ini files:** aaPanel mein website (PHP-FPM) `etc/php.ini` padhti hai, jabke command line (composer, artisan, cron) `etc/php-cli.ini` padhti hai. Extension dono mein load hona chahiye, aur sirf **ek** dafa. Agar `Module "zip" is already loaded` jaisi warning aaye, ya composer kahe `requires ext-fileinfo -> it is missing`, to ye repair script chalayein. Ye pehle backup banata hai, phir dono files theek karke PHP reload karta hai:
+>
+> ```bash
+> bash scripts/fix-php-extensions.sh /www/server/php/83
+> ```
+
 ### 3.2 Disabled functions (bohat zaroori)
 
 aaPanel security ke liye kuch PHP functions band rakhta hai. Ye app PDF banane ke liye `qpdf`, `gs`, `tesseract`, `soffice` jaise programs chalati hai, aur Composer/queue ko bhi kuch functions chahiye.
@@ -549,7 +555,8 @@ Baqi sab GitHub mein hai.
 | Ads nazar nahi aate | Advertising mein master switch on ho. Browser ka ad-blocker band karein. “Hide ads while signed in” on ho to admin logout karke dekhein |
 | HTTPS ke baad “Mixed content” / login loop | `APP_URL=https://…` rakhein. Cloudflare ho to `TRUSTED_PROXIES=*`, phir `bash scripts/deploy.sh` |
 | `Access denied for user 'root'@'localhost'` (Database: `laravel`) | `.env` mein MySQL chuna hai magar uski details nahi di. SQLite ke liye ye do commands chalayein, phir `bash scripts/deploy.sh`:<br>`sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env`<br>`sed -i -E 's/^(DB_(HOST\|PORT\|DATABASE\|USERNAME\|PASSWORD)=)/# \1/' .env`<br>MySQL ke liye aaPanel **Databases** wala naam, user aur password `.env` mein likhein ([step 8](#database)) |
-| `PHP Warning: Module "fileinfo" is already loaded` | fileinfo do dafa load ho raha hai. `grep -n fileinfo /www/server/php/*/etc/php*.ini` se line dhoondein aur `extension=fileinfo.so` wali **duplicate** line delete karein (ya PHP → Install extensions mein fileinfo uninstall karein, agar `php -m` mein phir bhi `fileinfo` dikhe). Phir PHP restart karein |
+| `PHP Warning: Module "zip"/"fileinfo" is already loaded` | Extension do dafa load ho raha hai. Chalayein: `bash scripts/fix-php-extensions.sh /www/server/php/XX` (backup ke saath duplicate line band karta hai aur PHP reload karta hai) |
+| Composer: `requires ext-fileinfo -> it is missing from your system` | Command line PHP (`php-cli.ini`) mein fileinfo load nahi. Chalayein: `bash scripts/fix-php-extensions.sh /www/server/php/XX`. Agar woh kahe “NOT installed”, to pehle App Store → PHP → Install extensions → fileinfo install karein |
 | `/www/server/php/83/bin/php: No such file or directory` | Aapke server par PHP ka version alag hai: `ls /www/server/php/` chala kar `83` ki jagah wahi number likhein (cron aur Supervisor mein bhi) |
 | Files `storage/app/pdf-temp` mein jama ho rahi hain | Cron ([step 11](#11-cron-job-scheduler--temp-files-ki-safai)) chal raha hai? Manual safai: `sudo -u www /www/server/php/83/bin/php artisan pdf:cleanup` |
 

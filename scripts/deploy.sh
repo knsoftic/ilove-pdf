@@ -48,8 +48,25 @@ command -v npm >/dev/null || fail "Node.js / npm not found. Install Node.js 22 (
 
 say "Using PHP $("$PHP_BIN" -r 'echo PHP_VERSION;' 2>/dev/null) ($PHP_BIN)"
 
-if "$PHP_BIN" -v 2>&1 | grep -q 'already loaded'; then
-    printf '\033[1;33mNote: a PHP extension is loaded twice (e.g. fileinfo). Remove the duplicate extension= line from php.ini – see docs/DEPLOY-AAPANEL.md, troubleshooting.\033[0m\n'
+PHP_DIR="$(dirname "$(dirname "$PHP_BIN")")"
+DUPLICATES="$("$PHP_BIN" -v 2>&1 | sed -n 's/.*Module "\([^"]*\)" is already loaded.*/\1/p' | sort -u | tr '\n' ' ')"
+if [ -n "$DUPLICATES" ]; then
+    printf '\033[1;33mNote: PHP loads these extensions twice: %s– fix: bash scripts/fix-php-extensions.sh %s\033[0m\n' "$DUPLICATES" "$PHP_DIR"
+fi
+
+# Extensions required by Laravel, PhpSpreadsheet, PHPWord, mPDF… (command line PHP).
+MODULES="$("$PHP_BIN" -m 2>/dev/null | tr 'A-Z' 'a-z')"
+MISSING=""
+for ext in ctype dom fileinfo filter gd iconv mbstring openssl session simplexml tokenizer xml xmlreader xmlwriter zip zlib; do
+    echo "$MODULES" | grep -qx "$ext" || MISSING="$MISSING $ext"
+done
+if grep -qE '^DB_CONNECTION=sqlite' .env; then
+    echo "$MODULES" | grep -qx pdo_sqlite || MISSING="$MISSING pdo_sqlite"
+elif grep -qE '^DB_CONNECTION=(mysql|mariadb)' .env; then
+    echo "$MODULES" | grep -qx pdo_mysql || MISSING="$MISSING pdo_mysql"
+fi
+if [ -n "$MISSING" ]; then
+    fail "Command line PHP ($PHP_DIR/etc/php-cli.ini) is missing:$MISSING. Run: bash scripts/fix-php-extensions.sh $PHP_DIR  (or install them in aaPanel → App Store → PHP → Install extensions)."
 fi
 
 # Put the site into maintenance mode while updating (only once installed).
