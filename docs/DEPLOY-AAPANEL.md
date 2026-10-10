@@ -136,6 +136,20 @@ Save → Nginx restart. Is ke baghair bari files par “413 Request Entity Too L
 
 aaPanel ka **Terminal** kholein (ya SSH se login karein). Neeche ki commands **root** ke taur par chalayein. Ye Ubuntu/Debian ke liye hain.
 
+> **Aasaan tareeqa:** code clone aur deploy hone ke baad, PDF ke saare programs ek command se lag jate hain:
+>
+> ```bash
+> cd /www/wwwroot/ilove-pdf.site && bash scripts/install-server-tools.sh
+> ```
+>
+> Ye command:
+> - qpdf, Ghostscript, Poppler, Tesseract (16 languages) aur LibreOffice install karti hai,
+> - website wali PHP mein `proc_open`/`putenv` waghera enable karti hai,
+> - `.env` mein programs ke paths likhti hai,
+> - admin panel ki detection refresh karti hai.
+>
+> LibreOffice nahi chahiye to aage `SKIP_LIBREOFFICE=1` likhein. Neeche wali commands phir bhi zaroori hain: git, Node.js aur Composer (5.3, 5.4).
+
 ### 5.1 Basic tools aur PDF programs
 
 ```bash
