@@ -11,7 +11,7 @@ Ye guide **PDF Toolkit** ko aaPanel wale Linux server par live karne ka poora ta
 | Web server | Nginx |
 | Database | SQLite (default, kuch install nahi karna) – ya MySQL |
 
-> Is guide mein PHP ka path `/www/server/php/83/bin/php` likha gaya hai. Aapke server par kaun sa version hai, ye `ls /www/server/php/` se dekhein (maslan `84` → `/www/server/php/84/bin/php`), aur har command mein `83` ki jagah wahi likhein. `scripts/deploy.sh` PHP khud dhoond leta hai, aur aakhir mein aapke server ke liye cron/Supervisor ki sahi commands print karta hai.
+> Is guide mein PHP ka path `/www/server/php/83/bin/php` likha gaya hai. Aapke server par kaun sa version hai, ye `ls /www/server/php/` se dekhein (maslan `84` → `/www/server/php/84/bin/php`), aur har command mein `83` ki jagah wahi likhein. `scripts/deploy.sh` wahi PHP version use karta hai jo aaPanel mein **website ke liye set** hai (Website → site → PHP version). Ye version aisa hona chahiye jismein `fileinfo` installed ho. Script aakhir mein aapke server ke liye cron/Supervisor ki sahi commands bhi print karta hai.
 
 ---
 

@@ -8,14 +8,29 @@
 # dependencies, builds the frontend, migrates the database, rebuilds the
 # caches, restarts queue workers and fixes file permissions.
 #
-# PHP is detected automatically (newest aaPanel PHP >= 8.2, then `php` on
-# the PATH). Override the defaults with environment variables, e.g.
+# PHP is detected automatically: the version aaPanel uses for this website,
+# else the newest aaPanel PHP >= 8.2, else `php` on the PATH. Override the
+# defaults with environment variables, e.g.
 #   PHP_BIN=/www/server/php/82/bin/php bash scripts/deploy.sh
 #
 set -euo pipefail
 
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31mError: %s\033[0m\n' "$*" >&2; exit 1; }
+
+# The PHP version aaPanel uses for this website (include enable-php-82.conf in
+# the site's Nginx config), so the command line matches the website.
+site_php() {
+    local conf version
+    for conf in "${VHOST_DIR:-/www/server/panel/vhost/nginx}"/*.conf; do
+        [ -f "$conf" ] && grep -qF "$APP_DIR" "$conf" || continue
+        version="$(grep -oE 'enable-php-[0-9]+\.conf' "$conf" | head -1 | grep -oE '[0-9]+' || true)"
+        if [ -n "$version" ] && [ -x "${PHP_ROOT:-/www/server/php}/$version/bin/php" ]; then
+            echo "${PHP_ROOT:-/www/server/php}/$version/bin/php"
+            return
+        fi
+    done
+}
 
 # Newest PHP >= 8.2 installed by aaPanel (/www/server/php/84, 83, 82…), else `php`.
 detect_php() {
@@ -30,6 +45,7 @@ detect_php() {
 }
 
 APP_DIR="${APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+PHP_BIN="${PHP_BIN:-$(site_php)}"
 PHP_BIN="${PHP_BIN:-$(detect_php)}"
 COMPOSER_BIN="${COMPOSER_BIN:-$(command -v composer || true)}"
 WEB_USER="${WEB_USER:-www}"
