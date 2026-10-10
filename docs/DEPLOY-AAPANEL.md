@@ -11,7 +11,7 @@ Ye guide **PDF Toolkit** ko aaPanel wale Linux server par live karne ka poora ta
 | Web server | Nginx |
 | Database | SQLite (default, kuch install nahi karna) – ya MySQL |
 
-> Har jagah PHP ka poora path `/www/server/php/83/bin/php` likha gaya hai. Agar aap PHP 8.2 install karein to `83` ki jagah `82` likhein.
+> Is guide mein PHP ka path `/www/server/php/83/bin/php` likha gaya hai. Aapke server par kaun sa version hai, ye `ls /www/server/php/` se dekhein (maslan `84` → `/www/server/php/84/bin/php`), aur har command mein `83` ki jagah wahi likhein. `scripts/deploy.sh` PHP khud dhoond leta hai, aur aakhir mein aapke server ke liye cron/Supervisor ki sahi commands print karta hai.
 
 ---
 
@@ -284,7 +284,7 @@ TESSERACT_PATH=/usr/bin/tesseract
 
 ### Database
 
-**SQLite (default):** `.env` mein `DB_CONNECTION=sqlite` rehne dein. Database file script khud banata hai (`database/database.sqlite`). Pehle check kar lein ke PHP mein SQLite hai:
+**SQLite (default, sab se aasaan):** `.env` mein `DB_CONNECTION=sqlite` ho, aur `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` wali lines `#` se band hon (ya delete hon). Database file script khud banata hai (`database/database.sqlite`). Pehle check kar lein ke PHP mein SQLite hai:
 
 ```bash
 /www/server/php/83/bin/php -m | grep -i sqlite
@@ -548,6 +548,9 @@ Baqi sab GitHub mein hai.
 | `/sw.js` 404 | [10.3 (b)](#103-config-file-nginx) wali Nginx line add karein, aur Advertising → Settings mein file ka content daalein |
 | Ads nazar nahi aate | Advertising mein master switch on ho. Browser ka ad-blocker band karein. “Hide ads while signed in” on ho to admin logout karke dekhein |
 | HTTPS ke baad “Mixed content” / login loop | `APP_URL=https://…` rakhein. Cloudflare ho to `TRUSTED_PROXIES=*`, phir `bash scripts/deploy.sh` |
+| `Access denied for user 'root'@'localhost'` (Database: `laravel`) | `.env` mein MySQL chuna hai magar uski details nahi di. SQLite ke liye ye do commands chalayein, phir `bash scripts/deploy.sh`:<br>`sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env`<br>`sed -i -E 's/^(DB_(HOST\|PORT\|DATABASE\|USERNAME\|PASSWORD)=)/# \1/' .env`<br>MySQL ke liye aaPanel **Databases** wala naam, user aur password `.env` mein likhein ([step 8](#database)) |
+| `PHP Warning: Module "fileinfo" is already loaded` | fileinfo do dafa load ho raha hai. `grep -n fileinfo /www/server/php/*/etc/php*.ini` se line dhoondein aur `extension=fileinfo.so` wali **duplicate** line delete karein (ya PHP → Install extensions mein fileinfo uninstall karein, agar `php -m` mein phir bhi `fileinfo` dikhe). Phir PHP restart karein |
+| `/www/server/php/83/bin/php: No such file or directory` | Aapke server par PHP ka version alag hai: `ls /www/server/php/` chala kar `83` ki jagah wahi number likhein (cron aur Supervisor mein bhi) |
 | Files `storage/app/pdf-temp` mein jama ho rahi hain | Cron ([step 11](#11-cron-job-scheduler--temp-files-ki-safai)) chal raha hai? Manual safai: `sudo -u www /www/server/php/83/bin/php artisan pdf:cleanup` |
 
 Detailed technical documentation (translation server, OCR languages, architecture) [README.md](../README.md) mein hai.
