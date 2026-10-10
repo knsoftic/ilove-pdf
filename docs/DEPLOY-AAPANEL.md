@@ -500,6 +500,28 @@ Deploy script har update par workers ko restart kar deta hai.
 
 ---
 
+### 12.1 Translation server (optional, recommended)
+
+Translation server ke baghair PDF Translator sirf Chrome ke built-in translator se chalta hai (admin panel mein “browser fallback”). Apna free LibreTranslate server lagane se har browser mein translation hoti hai:
+
+```bash
+cd /www/wwwroot/ilove-pdf.site && bash scripts/install-translation.sh
+```
+
+Ye command:
+- Docker install karti hai (agar pehle se na ho).
+- LibreTranslate ko sirf server ke andar `127.0.0.1:5000` par chalati hai, bahar se koi access nahi hota.
+- App ki 16 languages ke models download karti hai: lagbhag 3–4 GB, pehli dafa 10–30 minute.
+- `.env` mein `TRANSLATION_DRIVER=libretranslate` set karti hai.
+
+**RAM:** 16 languages ke liye kam se kam **4 GB RAM** chahiye. Kam RAM ho to chand languages hi lein:
+
+```bash
+LANGS=en,ur,hi,ar bash scripts/install-translation.sh
+```
+
+---
+
 ## 13. Admin account aur pehli settings
 
 Admin account banayein. Ye command email, naam aur password poochegi:
